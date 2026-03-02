@@ -13,24 +13,24 @@ The system features a **Playwright-driven Autonomous Agent** that automatically 
 
 ---
 
-## 📖 ScholarAgent Theory: In Simple Words
+## 🚀 How the ScholarAgent Idea Works
 
-If you're new to AI or Blockchain, here is the simple "Why" and "How" behind this project:
+ScholarAgent transforms the traditional, manual scholarship process into a seamless, autonomous experience. Here is the step-by-step logic of our project idea:
 
-### 1. What is an "Agentic" Scholarship?
-Traditional scholarships require humans to check your papers, which takes months. An **"Agentic"** system means the computer acts like a smart assistant. It doesn't just store your data; it **takes action**—like reading your marks, deciding if you qualify, and even logging into government websites for you.
+### 1. The Unified Student Profile
+Students often spend hours filling out different forms for various schemes. With ScholarAgent, a student fills a **single, unified profile** once. This profile stores Aadhaar details, academic history, income certificates, and their Algorand wallet address.
 
-### 2. Why use AI for Scoring?
-Instead of a "Yes/No" system, our AI uses **Weighted Logic**. Think of it like a teacher who cares more about your grades (40%) and your family's need (35%) than other factors. The AI ensures that every student is judged by the exact same fair rules, with zero human bias.
+### 2. AI-Powered Precision Scoring
+Our AI Engine doesn't just perform a binary "pass/fail" check. It uses a **weighted scoring algorithm** to evaluate the student's needs and merits. This ensures that the most deserving students get prioritized, and it calculates the exact scholarship amount they are eligible for.
 
-### 3. Why the Blockchain (Algorand)?
-Money can sometimes go missing or be delayed. By using **Algorand**, we ensure:
-- **Trust**: Once the AI says "Approved," the Smart Contract (a digital law) makes sure you get paid. Nobody can stop it.
-- **Speed**: Transactions happen in seconds, not weeks.
-- **Transparency**: Everyone can see that the money went to the right student, but your private details stay safe.
+### 3. The Autonomous Digital Twin (Agent)
+Once the profile is ready, our **Playwright-driven agent** acts as a "digital twin" for the student. It automatically navigates to various government scholarship portals (like MahaDBT), logs in, fills out every field from the unified profile, solves captchas, and submits applications—all without the student lifting a finger.
 
-### 4. What is a "SoulBound" Proof?
-When you win a scholarship, you get a digital certificate called a **SoulBound Token**. Unlike a trophy you can sell, this is "locked" to your digital wallet forever. it's your permanent, unchangeable proof of merit that you can show to future employers or colleges.
+### 4. Smart Contract Governance
+The **Algorand Smart Contract** acts as an impartial, automated judge. It holds the scholarship treasury and only triggers a disbursement when both the AI Engine (eligibility) and the Autonomous Agent (successful submission) provide verifiable proof.
+
+### 5. Immediate & Immutable Payout
+On approval, funds are disbursed instantly as **SCHOLAR tokens** directly to the student's Pera Wallet through an **Atomic Transaction**. A non-transferable **SoulBound NFT** is also minted to the student's wallet as a permanent, tamper-proof record of their achievement.
 
 ---
 
