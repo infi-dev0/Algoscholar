@@ -1,169 +1,290 @@
 // ============================================================
-//  ScholarAgent — Transparency Dashboard
+//  ScholarAgent — Transparency Dashboard (Realistic)
 //  File: frontend/src/pages/Dashboard.jsx
+//  Displays real submitted applications from the Apply page
 // ============================================================
 
-import React, { useState, useEffect } from 'react';
-import { useAlgorand } from '../hooks/useAlgorand';
+import React, { useMemo } from 'react';
 
-function Dashboard({ walletAddress }) {
-    const { getApplications, getDashboardStats } = useAlgorand();
-    const [stats, setStats] = useState(null);
-    const [applications, setApplications] = useState([]);
-    const [filter, setFilter] = useState('all');
-    const [loadingData, setLoadingData] = useState(true);
+const MONTHLY_BUDGET = 50000;
 
-    useEffect(() => {
-        loadData();
-    }, [filter]);
+function Dashboard({ walletAddress, submittedApplications = [] }) {
 
-    const loadData = async () => {
-        setLoadingData(true);
-        try {
-            const [statsData, appsData] = await Promise.all([
-                getDashboardStats(),
-                getApplications(filter),
-            ]);
-            if (statsData) setStats(statsData);
-            setApplications(appsData.applications || []);
-        } catch (err) {
-            console.error('Dashboard load error:', err);
-        }
-        setLoadingData(false);
-    };
+    // ── Computed Stats ────────────────────────────────────────
+    const stats = useMemo(() => {
+        const approved = submittedApplications.filter(a => a.status === 'approved');
+        const rejected = submittedApplications.filter(a => a.status === 'rejected');
+        const totalDisbursed = approved.reduce((sum, a) => sum + (a.amount || 0), 0);
+        const avgScore = submittedApplications.length > 0
+            ? (submittedApplications.reduce((s, a) => s + (a.totalScore || 0), 0) / submittedApplications.length).toFixed(1)
+            : 0;
+        return {
+            total: submittedApplications.length,
+            approved: approved.length,
+            rejected: rejected.length,
+            totalDisbursed,
+            avgScore,
+            budgetUsed: Math.min(totalDisbursed, MONTHLY_BUDGET),
+            budgetPercent: Math.min((totalDisbursed / MONTHLY_BUDGET) * 100, 100).toFixed(1),
+        };
+    }, [submittedApplications]);
+
+    // ── Activity Feed ─────────────────────────────────────────
+    const activityFeed = useMemo(() => {
+        return submittedApplications.map(app => {
+            const time = app.submittedAt ? new Date(app.submittedAt) : new Date();
+            const timeStr = time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = time.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+            return {
+                ...app,
+                timeStr,
+                dateStr,
+            };
+        });
+    }, [submittedApplications]);
 
     return (
         <div className="dashboard-page">
-            <h2>Transparency Dashboard</h2>
-            <p className="subtitle">Real-time overview of scholarship disbursements and treasury status.</p>
-
-            {/* Stats Row */}
-            <div className="stats-row">
-                <div className="stat-card">
-                    <div className="stat-value blue">{stats?.total_applications || 0}</div>
-                    <div className="stat-label">Total Applications</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value green">{stats?.approved || 0}</div>
-                    <div className="stat-label">Approved</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value red">{stats?.rejected || 0}</div>
-                    <div className="stat-label">Rejected</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value orange">₹{(stats?.total_amount_approved || 0).toLocaleString()}</div>
-                    <div className="stat-label">Total Disbursed</div>
+            <div className="dash-header">
+                <div>
+                    <h2>Transparency Dashboard</h2>
+                    <p className="subtitle">Overview of scholarship evaluations and treasury status.</p>
                 </div>
             </div>
 
-            {/* On-Chain State */}
-            {stats?.on_chain_state && (
-                <div style={{
-                    padding: '20px', borderRadius: '12px', marginBottom: '24px',
-                    background: '#f8f9fa', border: '1px solid #e5e7eb',
-                }}>
-                    <h4 style={{ fontFamily: 'Inter,sans-serif', fontSize: '.85rem', marginBottom: '12px' }}>
-                        📋 On-Chain Contract State
-                    </h4>
-                    <div className="result-details">
-                        <div className="detail">
-                            <div className="detail-label">Monthly Limit</div>
-                            <strong>₹{(stats.on_chain_state.monthly_limit || 50000).toLocaleString()}</strong>
-                        </div>
-                        <div className="detail">
-                            <div className="detail-label">Distributed This Month</div>
-                            <strong>₹{(stats.on_chain_state.total_distributed || 0).toLocaleString()}</strong>
-                        </div>
-                        <div className="detail">
-                            <div className="detail-label">Max Per Student</div>
-                            <strong>₹{(stats.on_chain_state.max_per_student || 10000).toLocaleString()}</strong>
-                        </div>
-                        <div className="detail">
-                            <div className="detail-label">Status</div>
-                            <strong>{stats.on_chain_state.paused ? '⏸ Paused' : '🟢 Active'}</strong>
-                        </div>
+            {/* ── Stats Row ── */}
+            <div className="dash-stats-row">
+                <div className="dash-stat-card">
+                    <div className="dash-stat-icon blue">
+                        <i className="fas fa-file-alt"></i>
+                    </div>
+                    <div className="dash-stat-info">
+                        <div className="dash-stat-value">{stats.total}</div>
+                        <div className="dash-stat-label">Total Applications</div>
                     </div>
                 </div>
-            )}
-
-            {/* Applications List */}
-            <div className="apps-list">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3>Applications</h3>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        {['all', 'pending', 'approved', 'rejected'].map(f => (
-                            <button key={f}
-                                className={filter === f ? 'btn-primary' : 'btn-secondary'}
-                                style={{ padding: '6px 14px', fontSize: '.75rem', borderRadius: '6px' }}
-                                onClick={() => setFilter(f)}
-                            >
-                                {f.charAt(0).toUpperCase() + f.slice(1)}
-                            </button>
-                        ))}
-                        <button className="btn-secondary" onClick={loadData}
-                            style={{ padding: '6px 14px', fontSize: '.75rem', borderRadius: '6px' }}>
-                            <i className="fas fa-refresh"></i> Refresh
-                        </button>
+                <div className="dash-stat-card">
+                    <div className="dash-stat-icon green">
+                        <i className="fas fa-check-circle"></i>
+                    </div>
+                    <div className="dash-stat-info">
+                        <div className="dash-stat-value">{stats.approved}</div>
+                        <div className="dash-stat-label">Approved</div>
                     </div>
                 </div>
+                <div className="dash-stat-card">
+                    <div className="dash-stat-icon red">
+                        <i className="fas fa-times-circle"></i>
+                    </div>
+                    <div className="dash-stat-info">
+                        <div className="dash-stat-value">{stats.rejected}</div>
+                        <div className="dash-stat-label">Rejected</div>
+                    </div>
+                </div>
+                <div className="dash-stat-card">
+                    <div className="dash-stat-icon orange">
+                        <i className="fas fa-coins"></i>
+                    </div>
+                    <div className="dash-stat-info">
+                        <div className="dash-stat-value">₹{stats.totalDisbursed.toLocaleString('en-IN')}</div>
+                        <div className="dash-stat-label">Total Disbursed</div>
+                    </div>
+                </div>
+            </div>
 
-                {loadingData ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-                        <span className="loader"></span>
-                        <p style={{ marginTop: '8px', fontSize: '.85rem' }}>Loading...</p>
+            {/* ── Two Column Layout ── */}
+            <div className="dash-grid">
+                {/* Left: Applications Table */}
+                <div className="dash-panel">
+                    <div className="dash-panel-header">
+                        <h3><i className="fas fa-list-ul"></i> Recent Applications</h3>
+                        <span className="dash-count-badge">{stats.total}</span>
                     </div>
-                ) : applications.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#999', fontSize: '.9rem' }}>
-                        No applications found. Submit one from the Apply page.
-                    </div>
-                ) : (
-                    <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
-                        {/* Header */}
-                        <div className="app-row" style={{ background: '#1a1a2e', color: '#fff', fontSize: '.75rem', fontWeight: '700' }}>
-                            <span></span>
-                            <span>STUDENT</span>
-                            <span>CATEGORY</span>
-                            <span>SCORE</span>
-                            <span>AMOUNT</span>
+
+                    {submittedApplications.length === 0 ? (
+                        <div className="dash-empty-state">
+                            <div className="dash-empty-icon">
+                                <i className="fas fa-inbox"></i>
+                            </div>
+                            <p>No applications yet</p>
+                            <span>Submit an application from the Apply page to see data here.</span>
                         </div>
+                    ) : (
+                        <div className="dash-table-wrap">
+                            <table className="dash-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Score</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {submittedApplications.map((app, i) => (
+                                        <tr key={i} className="dash-table-row">
+                                            <td>
+                                                <div className="dash-student-cell">
+                                                    <div className="dash-student-avatar" style={{
+                                                        background: app.status === 'approved'
+                                                            ? 'linear-gradient(135deg, #34a853, #2d8f47)'
+                                                            : 'linear-gradient(135deg, #ea4335, #c33a2e)'
+                                                    }}>
+                                                        {(app.studentName || 'S').charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div className="dash-student-name">{app.studentName || 'Student'}</div>
+                                                        <div className="dash-student-meta">{app.appId} · {app.category || 'General'}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className={`dash-score-badge ${app.totalScore >= 70 ? 'high' : app.totalScore >= 55 ? 'mid' : 'low'}`}>
+                                                    {app.totalScore}%
+                                                </span>
+                                            </td>
+                                            <td className="dash-amount">
+                                                {app.status === 'approved'
+                                                    ? `₹${(app.amount || 0).toLocaleString('en-IN')}`
+                                                    : '—'}
+                                            </td>
+                                            <td>
+                                                <span className={`dash-status-pill ${app.status}`}>
+                                                    {app.status === 'approved' ? '✓ Approved' : '✗ Rejected'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
 
-                        {applications.map((app) => (
-                            <div className="app-row" key={app.id}>
-                                <span className={`status-dot ${app.status}`}></span>
-                                <div>
-                                    <strong style={{ fontSize: '.85rem' }}>{app.name}</strong>
-                                    <div style={{ fontSize: '.7rem', color: '#999' }}>{app.id}</div>
+                {/* Right: Treasury + Stats */}
+                <div className="dash-sidebar">
+                    {/* Treasury Budget Gauge */}
+                    <div className="dash-panel">
+                        <div className="dash-panel-header">
+                            <h3><i className="fas fa-vault"></i> Treasury Budget</h3>
+                        </div>
+                        <div className="dash-treasury">
+                            <div className="dash-gauge-ring">
+                                <svg viewBox="0 0 120 120" className="dash-gauge-svg">
+                                    <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" strokeWidth="10" />
+                                    <circle cx="60" cy="60" r="52" fill="none"
+                                        stroke={stats.budgetPercent > 80 ? '#ea4335' : stats.budgetPercent > 50 ? '#f9ab00' : '#34a853'}
+                                        strokeWidth="10"
+                                        strokeDasharray={`${(stats.budgetPercent / 100) * 326.7} 326.7`}
+                                        strokeLinecap="round"
+                                        transform="rotate(-90 60 60)"
+                                        style={{ transition: 'stroke-dasharray 0.6s ease' }}
+                                    />
+                                </svg>
+                                <div className="dash-gauge-center">
+                                    <div className="dash-gauge-value">{stats.budgetPercent}%</div>
+                                    <div className="dash-gauge-label">Used</div>
                                 </div>
-                                <span>{app.category}</span>
-                                <span>{app.evaluation ? `${(app.evaluation.score * 100).toFixed(0)}%` : '—'}</span>
-                                <span style={{ fontWeight: 600 }}>
-                                    {app.evaluation?.approved
-                                        ? `₹${app.evaluation.amount.toLocaleString()}`
-                                        : app.status === 'rejected' ? '₹0' : 'Pending'
-                                    }
+                            </div>
+                            <div className="dash-treasury-row">
+                                <span>Disbursed</span>
+                                <strong>₹{stats.budgetUsed.toLocaleString('en-IN')}</strong>
+                            </div>
+                            <div className="dash-treasury-row">
+                                <span>Remaining</span>
+                                <strong>₹{(MONTHLY_BUDGET - stats.budgetUsed).toLocaleString('en-IN')}</strong>
+                            </div>
+                            <div className="dash-treasury-row">
+                                <span>Monthly Cap</span>
+                                <strong>₹{MONTHLY_BUDGET.toLocaleString('en-IN')}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Score Distribution */}
+                    <div className="dash-panel">
+                        <div className="dash-panel-header">
+                            <h3><i className="fas fa-chart-bar"></i> Quick Stats</h3>
+                        </div>
+                        <div className="dash-quick-stats">
+                            <div className="dash-qs-item">
+                                <span className="dash-qs-label">Avg Score</span>
+                                <span className="dash-qs-value">{stats.avgScore}%</span>
+                            </div>
+                            <div className="dash-qs-item">
+                                <span className="dash-qs-label">Approval Rate</span>
+                                <span className="dash-qs-value">
+                                    {stats.total > 0 ? ((stats.approved / stats.total) * 100).toFixed(0) : 0}%
                                 </span>
                             </div>
-                        ))}
+                            <div className="dash-qs-item">
+                                <span className="dash-qs-label">Max Per Student</span>
+                                <span className="dash-qs-value">₹10,000</span>
+                            </div>
+                            <div className="dash-qs-item">
+                                <span className="dash-qs-label">Network</span>
+                                <span className="dash-qs-value" style={{ color: '#34a853' }}>TestNet 🟢</span>
+                            </div>
+                        </div>
                     </div>
-                )}
+
+                    {/* Activity Feed */}
+                    {activityFeed.length > 0 && (
+                        <div className="dash-panel">
+                            <div className="dash-panel-header">
+                                <h3><i className="fas fa-stream"></i> Activity</h3>
+                            </div>
+                            <div className="dash-activity">
+                                {activityFeed.slice(0, 5).map((item, i) => (
+                                    <div className="dash-activity-item" key={i}>
+                                        <div className={`dash-activity-dot ${item.status}`}></div>
+                                        <div className="dash-activity-content">
+                                            <div className="dash-activity-text">
+                                                <strong>{item.studentName || 'Student'}</strong>
+                                                {item.status === 'approved'
+                                                    ? ` approved — ₹${(item.amount || 0).toLocaleString('en-IN')}`
+                                                    : ' — application rejected'}
+                                            </div>
+                                            <div className="dash-activity-time">{item.dateStr} · {item.timeStr}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Policy Rules */}
-            <div style={{
-                marginTop: '32px', padding: '20px', borderRadius: '12px',
-                background: '#f8f9fa', border: '1px solid #e5e7eb',
-            }}>
-                <h4 style={{ fontFamily: 'Inter,sans-serif', fontSize: '.85rem', marginBottom: '12px' }}>
-                    📜 Active Policy Rules
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '.82rem' }}>
-                    <div><span style={{ color: '#999' }}>Max Family Income:</span> <strong>₹2,50,000/year</strong></div>
-                    <div><span style={{ color: '#999' }}>Min Marks:</span> <strong>70%</strong></div>
-                    <div><span style={{ color: '#999' }}>Min Attendance:</span> <strong>75%</strong></div>
-                    <div><span style={{ color: '#999' }}>Eligible Categories:</span> <strong>SC, ST, OBC, EWS</strong></div>
-                    <div><span style={{ color: '#999' }}>Max Per Student:</span> <strong>₹10,000/month</strong></div>
-                    <div><span style={{ color: '#999' }}>Monthly Treasury:</span> <strong>₹50,000/month</strong></div>
+            <div className="dash-panel" style={{ marginTop: '24px' }}>
+                <div className="dash-panel-header">
+                    <h3><i className="fas fa-gavel"></i> Active Policy Rules</h3>
+                </div>
+                <div className="dash-policy-grid">
+                    <div className="dash-policy-item">
+                        <span className="dash-policy-label">Max Family Income</span>
+                        <span className="dash-policy-value">₹2,50,000/year</span>
+                    </div>
+                    <div className="dash-policy-item">
+                        <span className="dash-policy-label">Min Marks</span>
+                        <span className="dash-policy-value">70%</span>
+                    </div>
+                    <div className="dash-policy-item">
+                        <span className="dash-policy-label">Min Attendance</span>
+                        <span className="dash-policy-value">75%</span>
+                    </div>
+                    <div className="dash-policy-item">
+                        <span className="dash-policy-label">Eligible Categories</span>
+                        <span className="dash-policy-value">SC, ST, OBC, EBC, VJNT, SBC</span>
+                    </div>
+                    <div className="dash-policy-item">
+                        <span className="dash-policy-label">Max Per Student</span>
+                        <span className="dash-policy-value">₹10,000/month</span>
+                    </div>
+                    <div className="dash-policy-item">
+                        <span className="dash-policy-label">Monthly Treasury</span>
+                        <span className="dash-policy-value">₹50,000/month</span>
+                    </div>
                 </div>
             </div>
         </div>

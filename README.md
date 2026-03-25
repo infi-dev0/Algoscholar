@@ -127,10 +127,7 @@ python scholarship_contract.py
 | Attendance | ≥ 75% | 15% |
 | Category | SC/ST/OBC/EWS | 10% |
 
-## 🏆 Hackathon Credits
-- **Focus**: Agentic Commerce (Autonomous Payments)
-- **Problem Statement**: PS3 - A2A Autonomous Payments
-- **Technologies**: Algorand, PyTeal, React, Node.js, Python, Flask, Playwright.
-
----
-© 2026 ScholarAgent Project · [GitHub](https://github.com/anant-dev0/Algoscholar)
+## 🏆 Hackathon
+- **Focus**: Agentic Commerce
+- **PS3**: A2A Autonomous Payments
+- **Stack**: React + Node.js + Python + Algorand PyTeal + ASA + Pera Wallet

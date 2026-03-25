@@ -6,11 +6,12 @@
 
 require('dotenv').config();
 const express = require('express');
-const cors    = require('cors');
+const cors = require('cors');
 
 const applicationRoutes = require('./routes/applications');
+const agentRoutes = require('./routes/agent');
 
-const app  = express();
+const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -38,6 +39,7 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/applications', applicationRoutes);
+app.use('/api/agent', agentRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
