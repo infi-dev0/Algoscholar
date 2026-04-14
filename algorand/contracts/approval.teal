@@ -1,0 +1,223 @@
+#pragma version 8
+txn ApplicationID
+int 0
+==
+bnz main_l25
+txn OnCompletion
+int OptIn
+==
+bnz main_l24
+txn OnCompletion
+int NoOp
+==
+bnz main_l10
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l9
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l8
+txn OnCompletion
+int CloseOut
+==
+bnz main_l7
+err
+main_l7:
+int 1
+return
+main_l8:
+txn Sender
+global CreatorAddress
+==
+return
+main_l9:
+txn Sender
+global CreatorAddress
+==
+return
+main_l10:
+txna ApplicationArgs 0
+byte "approve"
+==
+bnz main_l23
+txna ApplicationArgs 0
+byte "reject"
+==
+bnz main_l22
+txna ApplicationArgs 0
+byte "update_policy"
+==
+bnz main_l21
+txna ApplicationArgs 0
+byte "reset_monthly"
+==
+bnz main_l20
+txna ApplicationArgs 0
+byte "toggle_pause"
+==
+bnz main_l16
+err
+main_l16:
+txn Sender
+global CreatorAddress
+==
+assert
+byte "paused"
+byte "paused"
+app_global_get
+int 0
+==
+bnz main_l19
+int 0
+main_l18:
+app_global_put
+int 1
+return
+main_l19:
+int 1
+b main_l18
+main_l20:
+txn Sender
+global CreatorAddress
+==
+txn Sender
+byte "agent_address"
+app_global_get
+==
+||
+assert
+byte "total_distributed"
+int 0
+app_global_put
+int 1
+return
+main_l21:
+txn Sender
+global CreatorAddress
+==
+assert
+byte "monthly_limit"
+txna ApplicationArgs 1
+btoi
+app_global_put
+byte "max_per_student"
+txna ApplicationArgs 2
+btoi
+app_global_put
+int 1
+return
+main_l22:
+txn Sender
+byte "agent_address"
+app_global_get
+==
+assert
+txna Accounts 1
+byte "application_status"
+byte "rejected"
+app_local_put
+txna Accounts 1
+byte "last_round"
+global Round
+app_local_put
+int 1
+return
+main_l23:
+txn Sender
+byte "agent_address"
+app_global_get
+==
+assert
+byte "paused"
+app_global_get
+int 0
+==
+assert
+txna ApplicationArgs 2
+btoi
+byte "max_per_student"
+app_global_get
+<=
+assert
+byte "total_distributed"
+app_global_get
+txna ApplicationArgs 2
+btoi
++
+byte "monthly_limit"
+app_global_get
+<=
+assert
+txna Accounts 1
+byte "eligibility_score"
+txna ApplicationArgs 3
+btoi
+app_local_put
+txna Accounts 1
+byte "amount_received"
+txna Accounts 1
+byte "amount_received"
+app_local_get
+txna ApplicationArgs 2
+btoi
++
+app_local_put
+txna Accounts 1
+byte "application_status"
+byte "approved"
+app_local_put
+txna Accounts 1
+byte "last_round"
+global Round
+app_local_put
+byte "total_distributed"
+byte "total_distributed"
+app_global_get
+txna ApplicationArgs 2
+btoi
++
+app_global_put
+int 1
+return
+main_l24:
+txn Sender
+byte "eligibility_score"
+int 0
+app_local_put
+txn Sender
+byte "amount_received"
+int 0
+app_local_put
+txn Sender
+byte "application_status"
+byte "pending"
+app_local_put
+txn Sender
+byte "last_round"
+global Round
+app_local_put
+int 1
+return
+main_l25:
+byte "monthly_limit"
+int 50000
+app_global_put
+byte "total_distributed"
+int 0
+app_global_put
+byte "max_per_student"
+int 10000
+app_global_put
+byte "treasury_wallet"
+txna ApplicationArgs 0
+app_global_put
+byte "agent_address"
+txna ApplicationArgs 1
+app_global_put
+byte "paused"
+int 0
+app_global_put
+int 1
+return

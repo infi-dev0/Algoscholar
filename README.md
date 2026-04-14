@@ -292,6 +292,11 @@ A lighter ScholarAgent SCHOOL tier can serve pre-matric scholarship programs. Sc
 
 <div align="center">
 
+### 🤖 The ScholarAgent Advantage
+**Auto-Apply to MahaDBT** — Our agent autonomously navigates the MahaDBT portal, fills forms, and solves captchas.  
+**Instant Disbursement** — Funds are automatically sent to your Pera Wallet upon AI-governed approval.  
+**Live Dashboard** — Monitor every step of your scholarship lifecycle from one unified, beautiful cockpit.
+
 **ScholarAgent v2** — *Because Every Deserving Student Deserves a Fair Shot*  
 *Built on Algorand · Powered by AI · Governed by Code · Verified on Chain*
 
