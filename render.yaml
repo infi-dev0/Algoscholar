@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: scholar-agent-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: FRONTEND_URL
+        sync: false # User needs to configure this via Render Dashboard
+      - key: AI_ENGINE_URL
+        sync: false 
+      - key: ALGOD_ADDRESS
+        value: https://testnet-api.algonode.cloud
+      - key: ALGOD_TOKEN
+        value: ""
+      - key: INDEXER_ADDRESS
+        value: https://testnet-idx.algonode.cloud
+      - key: INDEXER_TOKEN
+        value: ""
+      - key: SCHOLARSHIP_APP_ID
+        sync: false
+      - key: SCHOLAR_ASSET_ID
+        sync: false
+      - key: TREASURY_ADDRESS
+        sync: false
+      - key: AGENT_ADDRESS
+        sync: false
